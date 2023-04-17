@@ -34,6 +34,7 @@ Route::group(['prefix' => 'Packing-user', 'middleware'=> ['auth:packings'] ],fun
 
 Route::group(['prefix' => 'super_visors','middleware' => ['auth:super_visors']],function ()
 {
-   Route::resource('/refunds',RefundController::class);
+   Route::resource('/refunds',RefundController::class)->except('edit');
+   Route::get('/task-create/{id}',[RefundController::class,'edit']);
    Route::PUT('/assign-task/{id}',[RefundController::class,'assignTask']);
 });

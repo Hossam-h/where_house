@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Refund;
+use App\Models\PackingUser;
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignTaskRequest;
 use App\Http\Requests\PackinUserTaskRequest;
@@ -31,7 +32,6 @@ class RefundController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -42,7 +42,7 @@ class RefundController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        
     }
 
      /**
@@ -105,9 +105,10 @@ class RefundController extends Controller
      * @param  \App\Models\Refund  $refund
      * @return \Illuminate\Http\Response
      */
-    public function edit(Refund $refund)
+    public function edit($id)
     {
-        //
+        $packingUser = PackingUser::select('id','name_ar')->paginate(request('limit')?? 15);
+        return returnPaginatedData([$packingUser]);    
     }
 
     /**
