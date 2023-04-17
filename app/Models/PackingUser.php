@@ -13,7 +13,11 @@ class PackingUser extends Authenticatable implements JWTSubject
 {
     use HasFactory;
 
+
     
+    public function refunds(){
+        return $this->hasMany(Refund::class,'packed_user_id');
+    }
 
     /**
      * The attributes that are mass assignable.

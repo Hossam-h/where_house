@@ -27,11 +27,7 @@ Route::post('Auth-login', [AuthController::class,'login']);
 
 Route::group(['prefix' => 'Packing-user', 'middleware'=> ['auth:packings'] ],function ()
 {
-	    Route::get('/',function(){
-        return 'Packing-user login';
-
-        });
-
+   Route::PUT('/packing-user-task/{id}',[RefundController::class,'PackingUserTask']);
 });
 
 
@@ -40,5 +36,4 @@ Route::group(['prefix' => 'super_visors','middleware' => ['auth:super_visors']],
 {
    Route::resource('/refunds',RefundController::class);
    Route::PUT('/assign-task/{id}',[RefundController::class,'assignTask']);
-
 });
