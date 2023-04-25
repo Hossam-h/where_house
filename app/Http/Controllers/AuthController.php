@@ -63,16 +63,17 @@ class AuthController extends Controller
     {
         return response()->json([
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60,
-            'user_id' => Auth::guard('packings')->user()->id ?? Auth::guard('super_visors')->user()->id,
-            'name' => Auth::guard('packings')->user()->name_ar ?? Auth::guard('super_visors')->user()->name_ar,
-            'code' => Auth::guard('packings')->user()->code ?? Auth::guard('super_visors')->user()->code,
-            'type' => isset(Auth::guard('packings')->user()->code) ? 'packing_user' : 'packing_supervisor', //api_supplier guard 
-            'tasks' => isset(Auth::guard('packings')->user()->code) ? Auth::guard('packings')->user()->load(['refunds'=>function($q){
+            'token_type'   => 'bearer',
+            'expires_in'   => auth()->factory()->getTTL() * 60,
+            'user_id'      => Auth::guard('packings')->user()->id ?? Auth::guard('super_visors')->user()->id,
+            'name'         => Auth::guard('packings')->user()->name_ar ?? Auth::guard('super_visors')->user()->name_ar,
+            'code'         => Auth::guard('packings')->user()->code ?? Auth::guard('super_visors')->user()->code,
+            'type'         => isset(Auth::guard('packings')->user()->code) ? 'packing_user' : 'packing_supervisor', //api_supplier guard 
+            'refund_tasks' => isset(Auth::guard('packings')->user()->code) ? Auth::guard('packings')->user()->load(['refunds'=>function($q){
                 $q->where('packed_end_time',null);
-            }])->refunds : Null //api_supplier guard 
-
+            }])->refunds : Null,
+            
+            'fund_permit_tasks' => isset(Auth::guard('packings')->user()->code) ? Auth::guard('packings')->user()->load('fundPermits')->fundPermits : Null
         ]);
     }
 

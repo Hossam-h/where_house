@@ -76,11 +76,11 @@ class RefundController extends Controller
         $refund = Refund::findOrFail($id);
 
         $refund->update([
-         'packed_end_time'      => date('Y-m-d H:i:s') ,
-         'packed_qty'           => $request->packed_qty ?? null,
-         'missing_qty'          => $request->packed_qty ?? null,
-         'notes'                => $request->notes ?? null ,
-         'status'               => 'approved' ,
+         'packed_end_time'   => date('Y-m-d H:i:s') ,
+         'packed_qty'        => $request->packed_qty ?? null,
+         'missing_qty'       => $request->missing_qty ?? null,
+         'notes'             => $request->notes ?? null ,
+         'status'            => 'approved' ,
         ]);
 
         return returnSuccess(__('Task assigned succcess'));
