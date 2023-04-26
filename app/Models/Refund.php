@@ -12,16 +12,22 @@ class Refund extends Model
     protected $guarded = [];
 
 
-
-    public function products()
-    {
-        return $this->belongsToMany(Product::class, RefundProduct::class);
-    }
- 
-
-     public function deliveries()
+     public function delivery()
     {
         return $this->belongsTo(Delivery::class,'delivery_id');
+    }
+
+    public function packingUser()
+    {
+        return $this->belongsTo(PackingUser::class,'packed_user_id');
+    }
+
+    public function refunProducts(){
+        return $this->belongsToMany(Product::class,'refund_products')->withPivot('quantity','cost','price');
+    }
+
+    public function products(){
+        return $this->belongsToMany(Product::class,'refund_products')->withPivot('id','quantity','cost','price');
     }
 
 }

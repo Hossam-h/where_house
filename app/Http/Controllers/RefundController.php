@@ -9,6 +9,8 @@ use App\Http\Requests\AssignTaskRequest;
 use App\Http\Requests\PackinUserTaskRequest;
 use Carbon\Carbon;
 use Auth;
+use App\Http\Resources\RefundResource;
+
 class RefundController extends Controller
 {
     /**
@@ -20,8 +22,8 @@ class RefundController extends Controller
     {
 
          $lastMonth  =  Carbon::createFromFormat('m/d/Y',Carbon::now()->format('m/d/Y'))->subMonth()->format('Y-m-d');
-         $refunds    = Refund::whereDate('created_at','>=',$lastMonth)->with('products','deliveries')->paginate(request('limit')?? 15);
-         return returnPaginatedData([$refunds]);
+         $refunds    = Refund::paginate(request('limit') ?? 15);
+         return returnPaginatedResourceData(RefundResource::collection($refunds));
 
     }
 
@@ -75,13 +77,24 @@ class RefundController extends Controller
 
         $refund = Refund::findOrFail($id);
 
+        DB::beginTransaction();
+
         $refund->update([
          'packed_end_time'   => date('Y-m-d H:i:s') ,
-         'packed_qty'        => $request->packed_qty ?? null,
-         'missing_qty'       => $request->missing_qty ?? null,
          'notes'             => $request->notes ?? null ,
          'status'            => 'approved' ,
         ]);
+
+         foreach ($request->products as $product) {
+            RefundProduct::findOrFail($product->refund_product_id)([
+                'packed_qty'        => $product->packed_qty ?? null,
+                'missing_qty'       => $product->missing_qty ?? null,
+            ]);
+         }
+         DB::commit();
+
+
+
 
         return returnSuccess(__('Task assigned succcess'));
  
