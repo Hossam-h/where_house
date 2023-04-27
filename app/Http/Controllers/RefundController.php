@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Refund;
-use App\Models\PackingUser;
+use App\Models\{Refund,PackingUser,RefundProduct};
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignTaskRequest;
 use App\Http\Requests\PackinUserTaskRequest;
 use Carbon\Carbon;
 use Auth;
 use App\Http\Resources\RefundResource;
-
+use DB;
 class RefundController extends Controller
 {
     /**
@@ -22,7 +21,7 @@ class RefundController extends Controller
     {
 
          $lastMonth  =  Carbon::createFromFormat('m/d/Y',Carbon::now()->format('m/d/Y'))->subMonth()->format('Y-m-d');
-         $refunds    = Refund::paginate(request('limit') ?? 15);
+         $refunds    = Refund::whereDate('created_at','>=',$lastMonth)->paginate(request('limit') ?? 15);
          return returnPaginatedResourceData(RefundResource::collection($refunds));
 
     }
@@ -86,31 +85,19 @@ class RefundController extends Controller
         ]);
 
          foreach ($request->products as $product) {
-            RefundProduct::findOrFail($product->refund_product_id)([
-                'packed_qty'        => $product->packed_qty ?? null,
-                'missing_qty'       => $product->missing_qty ?? null,
+            RefundProduct::findOrFail($product['refund_product_id'])->update([
+                'packed_qty'        => $product['packed_qty'] ?? null,
+                'missing_qty'       => $product['missing_qty'] ?? null,
             ]);
          }
+
          DB::commit();
 
-
-
-
-        return returnSuccess(__('Task assigned succcess'));
- 
+        return returnSuccess(__('Task finished succcess'));
      }
 
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Refund  $refund
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Refund $refund)
-    {
-        //
-    }
+   
 
     /**
      * Show the form for editing the specified resource.
@@ -124,26 +111,5 @@ class RefundController extends Controller
         return returnPaginatedData([$packingUser]);    
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Refund  $refund
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Refund $refund)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Refund  $refund
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Refund $refund)
-    {
-        //
-    }
+   
 }

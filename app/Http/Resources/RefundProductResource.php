@@ -20,7 +20,9 @@ class RefundProductResource extends JsonResource
             'quantity'    => $this->pivot->quantity ?? null,
             'price'       => $this->pivot->price ?? null,
             'cost'        => $this->pivot->cost ?? null,
-            'refund_product_id'=> $this->pivot->id ?? null,
+            'refund_product_id' => $this->pivot->id ?? null,
+            'packed_qty'        => $this->pivot->packed_qty ?? null,
+            'missing_qty'       => $this->pivot->missing_qty ?? null,
             'images'      => $this->images ? $this->images->pluck('url')[0] : null,
             'unit'        => $this->units  ? $this->units->pluck('name_'.app()->getLocale())[0] : null
         ];
