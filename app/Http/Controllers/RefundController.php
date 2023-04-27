@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Refund,PackingUser,RefundProduct};
 use Illuminate\Http\Request;
-use App\Http\Requests\AssignTaskRequest;
-use App\Http\Requests\PackinUserTaskRequest;
+use App\Http\Requests\{AssignTaskRequest,PackinUserTaskRequest};
 use Carbon\Carbon;
 use Auth;
 use App\Http\Resources\RefundResource;

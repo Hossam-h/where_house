@@ -10,6 +10,8 @@ use Auth;
 use Log;
 use App\Http\Controllers\Controller;
 use App\Requests\LoginValidation;
+use App\Http\Resources\RefundResource;
+
 class AuthController extends Controller
 {
 
@@ -69,13 +71,28 @@ class AuthController extends Controller
             'name'         => Auth::guard('packings')->user()->name_ar ?? Auth::guard('super_visors')->user()->name_ar,
             'code'         => Auth::guard('packings')->user()->code ?? Auth::guard('super_visors')->user()->code,
             'type'         => isset(Auth::guard('packings')->user()->code) ? 'packing_user' : 'packing_supervisor', //api_supplier guard 
-            'refund_tasks' => isset(Auth::guard('packings')->user()->code) ? Auth::guard('packings')->user()->load(['refunds'=>function($q){
-                $q->where('packed_end_time',null);
-            }])->refunds : Null,
+            'refund_tasks' => $this->refundTasks(),
             
-            'fund_permit_tasks' => isset(Auth::guard('packings')->user()->code) ? Auth::guard('packings')->user()->load('fundPermits')->fundPermits : Null
+            //'fund_permit_tasks' => isset(Auth::guard('packings')->user()->code) ? Auth::guard('packings')->user()->load('fundPermits')->fundPermits : Null
         ]);
     }
+
+    public function refundTasks(){
+        $refundTasks = null;
+        if(Auth::guard('packings')->user()){
+            $refundTasks =  Auth::guard('packings')->user()->load(['refunds'=>function($q){
+                $q->where('packed_end_time',null);
+            }])->refunds;
+        }else{
+            $refundTasks =  Auth::guard('super_visors')->user()->load(['refunds'=>function($q){
+                $q->where('packed_end_time',null);
+            }])->refunds;
+        }
+        return returnPaginatedResourceData(RefundResource::collection($refundTasks));
+       
+    }
+
+   
 
      // public function logout() {
     //     auth()->logout();
