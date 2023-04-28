@@ -28,8 +28,8 @@ class AssignFundTaskRequest extends FormRequest
             'packed_supervisor_id' => 'integer',
             'packed_user_id'       => 'required|integer',
             'delivery_id'          => 'integer',
-            'packed_qty'           => 'required|integer',
-            'product_id'           => 'required|integer'
+            "products*"         => "required|array",
+
         ];
     }
 }
