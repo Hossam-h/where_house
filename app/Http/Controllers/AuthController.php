@@ -10,7 +10,7 @@ use Auth;
 use Log;
 use App\Http\Controllers\Controller;
 use App\Requests\LoginValidation;
-use App\Http\Resources\RefundResource;
+use App\Http\Resources\{RefundResource,FundPermitResource};
 
 class AuthController extends Controller
 {
@@ -64,16 +64,15 @@ class AuthController extends Controller
     protected function respondWithToken($token): JsonResponse
     {
         return response()->json([
-            'access_token' => $token,
-            'token_type'   => 'bearer',
-            'expires_in'   => auth()->factory()->getTTL() * 60,
-            'user_id'      => Auth::guard('packings')->user()->id ?? Auth::guard('super_visors')->user()->id,
-            'name'         => Auth::guard('packings')->user()->name_ar ?? Auth::guard('super_visors')->user()->name_ar,
-            'code'         => Auth::guard('packings')->user()->code ?? Auth::guard('super_visors')->user()->code,
-            'type'         => isset(Auth::guard('packings')->user()->code) ? 'packing_user' : 'packing_supervisor', //api_supplier guard 
-            'refund_tasks' => $this->refundTasks(),
-            
-            //'fund_permit_tasks' => isset(Auth::guard('packings')->user()->code) ? Auth::guard('packings')->user()->load('fundPermits')->fundPermits : Null
+            'access_token'      => $token,
+            'token_type'        => 'bearer',
+            'expires_in'        => auth()->factory()->getTTL() * 60,
+            'user_id'           => Auth::guard('packings')->user()->id ?? Auth::guard('super_visors')->user()->id,
+            'name'              => Auth::guard('packings')->user()->name_ar ?? Auth::guard('super_visors')->user()->name_ar,
+            'code'              => Auth::guard('packings')->user()->code ?? Auth::guard('super_visors')->user()->code,
+            'type'              => isset(Auth::guard('packings')->user()->code) ? 'packing_user' : 'packing_supervisor', //api_supplier guard 
+            'refund_tasks'      => $this->refundTasks(),
+            'fund_permit_tasks' => $this->fundPermitTasks()
         ]);
     }
 
@@ -92,7 +91,21 @@ class AuthController extends Controller
        
     }
 
-   
+
+    public function fundPermitTasks(){
+        $fundPermitTasks = null;
+        if(Auth::guard('packings')->user()){
+            $refundTasks =  Auth::guard('packings')->user()->load(['fundPermits'=>function($q){
+                $q->where('packed_end_time',null);
+            }])->fundPermits;
+        }else{
+            $fundPermitTasks =  Auth::guard('super_visors')->user()->load(['fundPermits'=>function($q){
+                $q->where('packed_end_time',null);
+            }])->fundPermits;
+        }
+        return returnPaginatedResourceData(FundPermitResource::collection($fundPermitTasks));
+       
+    }
 
      // public function logout() {
     //     auth()->logout();

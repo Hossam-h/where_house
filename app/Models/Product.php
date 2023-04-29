@@ -10,11 +10,12 @@ class Product extends Model
     use HasFactory;
     protected $guarded = [];
 
-
-    
-
     public function refunds(){
         return $this->belongsToMany(Refund::class,'refund_products','product_id')->withPivot('id','quantity','cost','price');
+    }
+
+    public function fundPermit(){
+        return $this->belongsToMany(Refund::class,'fund_permit_products','product_id')->withPivot('id','quantity','cost','price');
     }
 
     public function images()

@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FundPermit;
-use App\Models\Delivery;
-use App\Models\Product;
-use App\Models\PackingUser;
-use App\Models\ProductUnit;
-use App\Models\FundPermitProduct;
+use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,FundPermitProduct};
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignFundTaskRequest;
 use App\Http\Requests\FinishedTaskRequest;
+use App\Http\Resources\FundPermitResource;
 use Auth;
 use DB;
 
@@ -24,7 +20,7 @@ class FundPermitController extends Controller
      */
     public function index()
     {
-        $delivries = Delivery::paginate(request('limit')?? 15);
+        $delivries = Delivery::orderBy('id', 'DESC')->paginate(request('limit')?? 15);
         return returnPaginatedData([$delivries]);
     }
 
@@ -32,8 +28,8 @@ class FundPermitController extends Controller
 
     public function fundPermitTasks(){
 
-        $refundPermits = FundPermit::paginate(request('limit')?? 15);
-        return returnPaginatedData([$refundPermits]);
+        $fundPermits    = FundPermit::orderBy('id', 'DESC')->paginate(request('limit') ?? 15);
+        return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
     }
 
     /**
@@ -63,9 +59,18 @@ class FundPermitController extends Controller
 
         $fundPermit->update([
          'packed_end_time'    => date('Y-m-d H:i:s') ,
-         'missing_qty'        => $request->missing_qty ?? null,
          'notes'              => $request->notes ?? null ,
         ]);
+        
+        if(count($request->products) > 0){
+            foreach($request->products as $product){
+                if($product['missing_qty']){
+                    FundPermitProduct::findOrFail($product['fund_permit_product_id'])->update([
+                        'missing_qty' => $product['missing_qty'] ?? null
+                    ]);
+                }
+            }
+        }
 
         return returnSuccess(__('Task finished succcess'));
     }
@@ -87,26 +92,43 @@ class FundPermitController extends Controller
 
                 $fundPermitCost = null;
 
-                foreach ($request->products as $product){
-                    FundPermitProduct::create([
-                        'quantity'        => $product['packed_qty'] ?? null,
-                        'product_id'      => $product['product_id'] ?? null,
-                        'fund_permit_id'  => $fundPermit->id,
-                        'price'           => ProductUnit::where([ ['unit_id',$product['unit_id']],['product_id',$product['product_id']]
-                                            ])->first()->price ,
+                    foreach ($request->products as $product)
+                    {
+                        $Fundproduct = Product::findOrFail($product['product_id']);
+                        if( $Fundproduct->stock < $product['packed_qty']){
+                            return returnError('this qty is not available in this product'.$Fundproduct->title_ar);
+                        }
+                        FundPermitProduct::create([
+                            'quantity'        => $product['packed_qty'] ?? null,
+                            'product_id'      => $product['product_id'] ?? null,
+                            'fund_permit_id'  => $fundPermit->id,
+                            'price'           => ProductUnit::where([ 
+                                                ['unit_id',$product['unit_id']] ,
+                                                ['product_id',$product['product_id']] 
+                                                ])->first()->price ,
+                            'cost'            => $product['packed_qty'] *  ProductUnit::where([ 
+                                                                        ['unit_id',$product['unit_id']], 
+                                                                        ['product_id',$product['product_id']]
+                                                                        ])->first()->price,
+                            ]);
 
-                        'cost'            => $product['packed_qty'] *  ProductUnit::where([ ['unit_id',$product['unit_id']], ['product_id',$product['product_id']]
-                                            ])->first()->price,
+
+                            $fundPermitCost   +=  $product['packed_qty'] *  ProductUnit::where([ 
+                                                                        ['unit_id',$product['unit_id']], 
+                                                                        ['product_id',$product['product_id']]
+                                                                        ])->first()->price;
+
+                        $Fundproduct->update([
+                                'stock' => $Fundproduct->stock - $product['packed_qty']
                         ]);
 
+                    }
 
-                        $fundPermitCost +=  $product['packed_qty'] *  ProductUnit::where([ ['unit_id',$product['unit_id']], ['product_id',$product['product_id']]
-                                                                ])->first()->price;
-                }
+                $fundPermit->update([
+                'cost' =>   $fundPermitCost
+                ]);
 
-                        $fundPermit->update([
-                        'cost' =>   $fundPermitCost
-                        ]);
+
 
         DB::commit();
 
@@ -135,11 +157,10 @@ class FundPermitController extends Controller
     public function edit($id)
     {
         $packingUser = PackingUser::select('id','name_ar')->get();
-        $products = Product::select('id','title_ar')->get();
-        $units = Unit::select('id','name_ar')->get();
+        $products    = Product::select('id','title_ar')->get();
+        $units       = Unit::select('id','name_ar')->get();
 
-
-        return  ['packingUsers'=> $packingUser, 'products'=>$products,'units'=>$units] ;    
+        return  ['packingUsers'=> $packingUser, 'products'=>$products, 'units'=>$units];    
     }
 
     /**

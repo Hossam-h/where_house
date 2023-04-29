@@ -56,4 +56,8 @@ class PackingSupervisor extends Authenticatable implements JWTSubject
     public function refunds(){
         return $this->hasMany(Refund::class,'packed_supervisor_id');
     }
+
+    public function fundPermits(){
+        return $this->hasMany(FundPermit::class,'packed_supervisor_id');
+    }
 }
