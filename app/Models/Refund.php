@@ -23,11 +23,11 @@ class Refund extends Model
     }
 
     public function refunProducts(){
-        return $this->belongsToMany(Product::class,'refund_products')->withPivot('quantity','cost','price');
+        return $this->belongsToMany(Product::class,'refund_products')->withPivot('id','quantity','cost','price','packed_qty','missing_qty');
     }
 
     public function products(){
-        return $this->belongsToMany(Product::class,'refund_products')->withPivot('id','quantity','cost','price');
+        return $this->belongsToMany(Product::class,'refund_products')->withPivot('id','quantity','cost','price','packed_qty','missing_qty');
     }
 
 }

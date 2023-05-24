@@ -94,8 +94,9 @@ class AuthController extends Controller
 
     public function fundPermitTasks(){
         $fundPermitTasks = null;
+        
         if(Auth::guard('packings')->user()){
-            $refundTasks =  Auth::guard('packings')->user()->load(['fundPermits'=>function($q){
+            $fundPermitTasks =  Auth::guard('packings')->user()->load(['fundPermits'=>function($q){
                 $q->where('packed_end_time',null);
             }])->fundPermits;
         }else{

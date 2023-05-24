@@ -12,7 +12,7 @@ class FundPermit extends Model
 
 
     public function products(){
-        return $this->belongsToMany(Product::class,'fund_permit_products')->withPivot('id','quantity','cost','price');
+        return $this->belongsToMany(Product::class,'fund_permit_products')->withPivot('id','quantity','cost','price','packed_qty','missing_qty');
     }
     public function delivery()
     {

@@ -16,7 +16,8 @@ class RefundProductResource extends JsonResource
     {
         return [
             'id'          => $this->id,
-            'title'       => $this->{'title_'.app()->getLocale()},
+            'title'       => $this->title_ar,
+            'code'        => $this->ean_number,
             'quantity'    => $this->pivot->quantity ?? null,
             'price'       => $this->pivot->price ?? null,
             'cost'        => $this->pivot->cost ?? null,

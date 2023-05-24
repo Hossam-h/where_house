@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Refund,PackingUser,RefundProduct};
+use App\Models\{Refund,PackingUser,FundPermit,RefundProduct};
 use Illuminate\Http\Request;
 use App\Http\Requests\{AssignTaskRequest,PackinUserTaskRequest};
 use Carbon\Carbon;
@@ -16,6 +16,14 @@ class RefundController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+     public $fudPermit;
+
+     public function __construct(FundPermit $fudPermit){
+
+        $this->fudPermit = $fudPermit;
+     }
+
     public function index()
     {
 
@@ -55,6 +63,10 @@ class RefundController extends Controller
 
        $refund = Refund::findOrFail($id);
 
+        if($this->checkPackinTaskAvailable($request->packed_user_id))
+        {
+            return returnError('this packing User already have a task');
+        }
 
        if ($refund->packed_start_time !== NULL){
         return returnError('this task is already assigned');
@@ -110,5 +122,14 @@ class RefundController extends Controller
         return returnPaginatedData([$packingUser]);    
     }
 
+    public function checkPackinTaskAvailable($id){
+        $fundPermit = FundPermit::where([['packed_user_id',$id],['packed_end_time',null]])->first();
+        $refund     = Refund::where([['packed_user_id',$id],['packed_end_time',null]])->first();
+
+        if($fundPermit != null || $refund != null){
+            return true;
+          }
+          return false;
+    }
    
 }
