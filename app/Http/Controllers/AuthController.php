@@ -11,7 +11,7 @@ use Log;
 use App\Http\Controllers\Controller;
 use App\Requests\LoginValidation;
 use App\Http\Resources\{RefundResource,FundPermitResource};
-
+use Hash;
 class AuthController extends Controller
 {
 

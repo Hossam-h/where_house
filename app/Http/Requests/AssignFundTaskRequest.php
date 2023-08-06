@@ -25,10 +25,10 @@ class AssignFundTaskRequest extends FormRequest
     {
         return [
             'packed_start_time'    => 'required|date_format:Y-m-d H:i:s|after:yesterday',
-            'packed_supervisor_id' => 'integer',
-            'packed_user_id'       => 'required|integer',
+            'packed_supervisor_id' => 'exists:packing_supervisors,id',
+            'packed_user_id'       => 'exists:packing_users,id',
             'delivery_id'          => 'integer',
-            "products*"         => "required|array",
+            "products*"            => "required|array",
 
         ];
     }

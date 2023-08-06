@@ -28,7 +28,7 @@ class FundPermitController extends Controller
 
     public function fundPermitTasks(){
 
-        $fundPermits    = FundPermit::orderBy('id', 'DESC')->paginate(request('limit') ?? 15);
+        $fundPermits    = FundPermit::orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
     }
 
@@ -91,11 +91,12 @@ class FundPermitController extends Controller
             return returnError('this task is already assigned');
            }
 
+        $packedUserId = $request->packed_user_id ?? Auth::guard('packings')->user()->id;
         DB::beginTransaction();
             $fundPermit->update([
                     'packed_start_time'    => $request->packed_start_time,
-                    'packed_supervisor_id' => Auth::guard('super_visors')->user()->id,
-                    'packed_user_id'       => $request->packed_user_id,
+                    'packed_supervisor_id' => $this->getSuperVisorId($packedUserId),
+                    'packed_user_id'       => $packedUserId,
                     'is_assigned'          => 1 ,
                 ]);
 
@@ -155,14 +156,31 @@ class FundPermitController extends Controller
     }
 
     public function checkPackinTaskAvailable($id){
-    
-        $fundPermit = FundPermit::where([['packed_user_id',$id],['packed_end_time',null]])->first();
-        $refund     = Refund::where([['packed_user_id',$id],['packed_end_time',null]])->first();
+         
+        $packedUserId = $id ?? Auth::guard('packings')->user()->id;
+        $fundPermit = FundPermit::where([['packed_user_id',$packedUserId],['packed_end_time',null]])->first();
+        $refund     = Refund::where([['packed_user_id',$packedUserId],['packed_end_time',null]])->first();
 
        if($fundPermit != null || $refund != null){        
          return true;
        }
        return false;
 
+    }
+
+    public function getSuperVisorId($id = null)
+    {
+        $packedSupervisorId = null;
+        if (Auth::guard('super_visors')->check())
+        {
+            $packedSupervisorId = Auth::guard('super_visors')->user()->id;
+        }else{
+            if(PackingUser::findOrFail($id)){
+                $packingSupervisor  = PackingUser::findOrFail($id)->packingSupervisor;
+                $packedSupervisorId = $packingSupervisor->id;
+            }
+        }
+
+        return $packedSupervisorId;
     }
 }
