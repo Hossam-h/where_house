@@ -33,6 +33,11 @@ Route::group(['prefix' => 'Packing-user', 'middleware'=> ['auth:packings'] ],fun
    Route::get('/fund-permits-tasks',[FundPermitController::class,'fundPermitTasks']);
    Route::PUT('/assign-task-fund-permit/{id}',[FundPermitController::class,'assignTask']);
 
+   ////////////////////////////// refunds //////////////////////////////////////////////////
+
+   Route::get('/refunds',[RefundController::class,'index']);
+   Route::get('/task-refund-create/{id}',[RefundController::class,'edit']);
+   Route::PUT('/assign-task-refund/{id}',[RefundController::class,'assignTask']);
 });
 
 

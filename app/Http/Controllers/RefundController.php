@@ -26,11 +26,9 @@ class RefundController extends Controller
 
     public function index()
     {
-
-         $lastMonth  =  Carbon::createFromFormat('m/d/Y',Carbon::now()->format('m/d/Y'))->subMonth()->format('Y-m-d');
-         $refunds    = Refund::whereDate('created_at','>=',$lastMonth)->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
-         return returnPaginatedResourceData(RefundResource::collection($refunds));
-
+        $lastMonth  =  Carbon::createFromFormat('m/d/Y',Carbon::now()->format('m/d/Y'))->subMonth()->format('Y-m-d');
+        $refunds    = Refund::whereDate('created_at','>=',$lastMonth)->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+        return returnPaginatedResourceData(RefundResource::collection($refunds));
     }
 
     /**
@@ -72,10 +70,12 @@ class RefundController extends Controller
         return returnError('this task is already assigned');
        }
        
+       $packedUserId = $request->packed_user_id ?? Auth::guard('packings')->user()->id;
+
        $refund->update([
         'packed_start_time'    => $request->packed_start_time,
-        'packed_supervisor_id' => Auth::guard('super_visors')->user()->id,
-        'packed_user_id'       => $request->packed_user_id,
+        'packed_supervisor_id' => $this->getSuperVisorId($packedUserId),
+        'packed_user_id'       => $packedUserId,
        ]);
 
        return returnSuccess(__('Task assigned succcess'));
@@ -130,6 +130,22 @@ class RefundController extends Controller
             return true;
           }
           return false;
+    }
+
+    public function getSuperVisorId($id = null)
+    {
+        $packedSupervisorId = null;
+        if (Auth::guard('super_visors')->check())
+        {
+            $packedSupervisorId = Auth::guard('super_visors')->user()->id;
+        }else{
+            if(PackingUser::findOrFail($id)){
+                $packingSupervisor  = PackingUser::findOrFail($id)->packingSupervisor;
+                $packedSupervisorId = $packingSupervisor->id;
+            }
+        }
+
+        return $packedSupervisorId;
     }
    
 }
