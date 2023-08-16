@@ -69,7 +69,7 @@ class FundPermitController extends Controller
                     FundPermitProduct::findOrFail($product['fund_permit_product_id'])->update([
                         'missing_qty' => $product['missing_qty'] ?? null,
                         'packed_qty'  => $product['packed_qty'] ?? null,
-
+                        'comment'     => $request->comment ?? null,
                     ]);
                 }
             }

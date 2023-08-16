@@ -26,7 +26,8 @@ class FinishedTaskRequest extends FormRequest
         return [
             'packed_end_time' => 'date_format:Y-m-d H:i:s',
             'missing_qty'     => 'integer',
-            'notes'           => 'string'
+            'notes'           => 'string',
+            'comment'         => 'string'
         ];
     }
 }
