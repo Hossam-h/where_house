@@ -53,4 +53,11 @@ Route::group(['prefix' => 'super_visors','middleware' => ['auth:super_visors']],
    Route::get('/task-fund-permit-create/{id}',[FundPermitController::class,'edit']);
    Route::PUT('/assign-task-fund-permit/{id}',[FundPermitController::class,'assignTask']);
 
+
+   //supervisor-reviewer-to-approved
+   Route::get('/packed-fund-permits',[FundPermitController::class,'packedFundPermits']);
+   Route::PUT('/approved-fund-permits/{id}',[FundPermitController::class,'approvedFundPermits']);
+
+   Route::get('/all-vichles',[FundPermitController::class,'allVichles']);
+
 });

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,FundPermitProduct};
+use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,Vichle,FundPermitProduct};
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignFundTaskRequest;
 use App\Http\Requests\FinishedTaskRequest;
+use App\Http\Requests\ApprovedFundPermits;
 use App\Http\Resources\FundPermitResource;
+use App\Http\Resources\VichleResource;
 use Auth;
 use DB;
 
@@ -24,12 +26,36 @@ class FundPermitController extends Controller
         return returnPaginatedData([$delivries]);
     }
 
-
-
     public function fundPermitTasks(){
-
         $fundPermits    = FundPermit::orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
+    }
+
+
+    public function packedFundPermits(){
+        $fundPermits    = FundPermit::orderBy('id', 'DESC')->where('status','packed')->dailyFilter()->paginate(request('limit') ?? 15);
+        return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
+    }
+
+    public function approvedFundPermits(ApprovedFundPermits $request,$id){
+       $fundPermit =   FundPermit::findOrFail($id);
+       
+       $fundPermit->update([
+           'status'               => 'approved',
+           'vichle_id'            => $request->vichle_id,
+           'revision_start_time'  => $request->revision_start_time ?? null,
+           'revision_end_time'    => $request->revision_end_time ?? null, 
+           'packed_supervisor_id' => $this->getSuperVisorId(),
+        ]);
+        
+        return returnSuccess(__('Task Approved succcess'));
+
+    }
+
+
+    public function allVichles(){
+        $vichles = Vichle::orderBy('id', 'DESC')->paginate(request('limit') ?? 15);
+        return returnPaginatedResourceData(VichleResource::collection($vichles));
     }
 
     /**
@@ -60,7 +86,7 @@ class FundPermitController extends Controller
         $fundPermit->update([
          'packed_end_time'    => date('Y-m-d H:i:s') ,
          'notes'              => $request->notes ?? null ,
-         'status'             => $request->status ?? 'approved' ,
+         'status'             => $request->status ?? 'packed' ,
         ]);
         
         if(count($request->products) > 0){
@@ -98,6 +124,7 @@ class FundPermitController extends Controller
                     'packed_supervisor_id' => $this->getSuperVisorId($packedUserId),
                     'packed_user_id'       => $packedUserId,
                     'is_assigned'          => 1 ,
+                    'status'               => 'in_picking' ,
                 ]);
 
         DB::commit();
