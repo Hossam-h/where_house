@@ -24,9 +24,11 @@ class ApprovedFundPermits extends FormRequest
     public function rules()
     {
         return [
-            'vichle_id'           =>'required|exists:vichles,id',
-            'revision_start_time' =>'nullable|date_format:Y-m-d H:i:s',
-            'revision_end_time'   =>'nullable|date_format:Y-m-d H:i:s',
+            'vichle_id'                    =>'required|exists:vichles,id',
+            'revision_start_time'          =>'nullable|date_format:Y-m-d H:i:s',
+            'revision_end_time'            =>'nullable|date_format:Y-m-d H:i:s',
+            'products.*.revision_quantity' => ['nullable','numeric'],
+            'products.*.comment'           => ['nullable','string'],
         ];
     }
 }

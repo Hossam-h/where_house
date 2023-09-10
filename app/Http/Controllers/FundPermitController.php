@@ -47,6 +47,17 @@ class FundPermitController extends Controller
            'revision_end_time'    => $request->revision_end_time ?? null, 
            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
+
+        if(count($request->products) > 0){
+            foreach($request->products as $product){
+                if(isset($product['revision_quantity'])){
+                    FundPermitProduct::findOrFail($product['fund_permit_product_id'])->update([
+                        'revision_quantity' => $product['revision_quantity'] ?? null,
+                        'comment'           => $product['comment'] ?? null,
+                    ]);
+                }
+            }
+        }
         
         return returnSuccess(__('Task Approved succcess'));
 
@@ -107,7 +118,6 @@ class FundPermitController extends Controller
     public function assignTask(AssignFundTaskRequest $request,$id){
 
         $fundPermit = FundPermit::findOrFail($id);
-
 
         if($this->checkPackinTaskAvailable($request->packed_user_id)){
             return returnError('this packing User already have a task');
