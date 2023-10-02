@@ -20,6 +20,7 @@ class FundPermitResource extends JsonResource
             'packed_start_time'    => $this->packed_start_time ?? null,
             'packed_end_time'      => $this->packed_end_time ?? null,
             'created_at'           => date('d M Y', strtotime($this->created_at)),
+            'status'               => $this->status,
 
             'products'       => FundPermitProductResource::collection($this->products),
             'delivery'       => (object) ["id" => $this->delivery->id ?? null , "name" => $this->delivery->name_ar ?? null],
