@@ -27,7 +27,15 @@ class FundPermitController extends Controller
     }
 
     public function fundPermitTasks(){
-        $fundPermits    = FundPermit::orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+        $fundPermits    = FundPermit::with('products:id,title_ar,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
+        ->orderBy('id', 'DESC')->select('id',
+                            'packed_user_id',
+                            'delivery_id',
+                            'cost',
+                            'packed_start_time',
+                            'packed_end_time',
+                            'created_at',
+                            'status')->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
     }
 
@@ -40,6 +48,8 @@ class FundPermitController extends Controller
     public function approvedFundPermits(ApprovedFundPermits $request,$id){
        $fundPermit =   FundPermit::findOrFail($id);
        
+       DB::beginTransaction();
+
        $fundPermit->update([
            'status'               => 'approved',
            'vichle_id'            => $request->vichle_id,
@@ -58,6 +68,8 @@ class FundPermitController extends Controller
                 }
             }
         }
+        DB::commit();
+
         
         return returnSuccess(__('Task Approved succcess'));
 
@@ -69,30 +81,12 @@ class FundPermitController extends Controller
         return returnPaginatedResourceData(VichleResource::collection($vichles));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
 
     public function PackingUserFundTask(FinishedTaskRequest $request , $id){
 
         $fundPermit = FundPermit::findOrFail($id);
+
+        DB::beginTransaction();
 
         $fundPermit->update([
          'packed_end_time'    => date('Y-m-d H:i:s') ,
@@ -111,6 +105,8 @@ class FundPermitController extends Controller
                 }
             }
         }
+        DB::commit();
+
 
         return returnSuccess(__('Task finished succcess'));
     }
@@ -143,16 +139,6 @@ class FundPermitController extends Controller
      }
 
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\FundPermit  $fundPermit
-     * @return \Illuminate\Http\Response
-     */
-    public function show(FundPermit $fundPermit)
-    {
-        //
-    }
 
     /**
      * Show the form for editing the specified resource.
@@ -167,29 +153,6 @@ class FundPermitController extends Controller
         $units       = Unit::select('id','name_ar')->get();
 
         return  ['packingUsers'=> $packingUser, 'products'=>$products, 'units'=>$units];    
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\FundPermit  $fundPermit
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, FundPermit $fundPermit)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\FundPermit  $fundPermit
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(FundPermit $fundPermit)
-    {
-        //
     }
 
     public function checkPackinTaskAvailable($id){

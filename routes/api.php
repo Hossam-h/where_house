@@ -25,39 +25,3 @@ Route::group(['middleware' => ['api']], function () {
 Route::post('Auth-login', [AuthController::class,'login']);
 });
 
-
-Route::group(['prefix' => 'Packing-user', 'middleware'=> ['auth:packings'] ],function ()
-{
-   Route::PUT('/refund-task/{id}',[RefundController::class,'PackingUserTask']);
-   Route::PUT('/fund-permit-task/{id}',[FundPermitController::class,'PackingUserFundTask']);
-   Route::get('/fund-permits-tasks',[FundPermitController::class,'fundPermitTasks']);
-   Route::PUT('/assign-task-fund-permit/{id}',[FundPermitController::class,'assignTask']);
-
-   ////////////////////////////// refunds //////////////////////////////////////////////////
-
-   Route::get('/refunds',[RefundController::class,'index']);
-   Route::get('/task-refund-create/{id}',[RefundController::class,'edit']);
-   Route::PUT('/assign-task-refund/{id}',[RefundController::class,'assignTask']);
-});
-
-
-
-Route::group(['prefix' => 'super_visors','middleware' => ['auth:super_visors']],function ()
-{
-   Route::resource('/refunds',RefundController::class)->except('edit','update','destroy','show');
-   Route::get('/task-refund-create/{id}',[RefundController::class,'edit']);
-   Route::PUT('/assign-task-refund/{id}',[RefundController::class,'assignTask']);
-
-   Route::get('/fund-permits',[FundPermitController::class,'index']);
-   Route::get('/fund-permits-tasks',[FundPermitController::class,'fundPermitTasks']);
-   Route::get('/task-fund-permit-create/{id}',[FundPermitController::class,'edit']);
-   Route::PUT('/assign-task-fund-permit/{id}',[FundPermitController::class,'assignTask']);
-
-
-   //supervisor-reviewer-to-approved
-   Route::get('/packed-fund-permits',[FundPermitController::class,'packedFundPermits']);
-   Route::PUT('/approved-fund-permits/{id}',[FundPermitController::class,'approvedFundPermits']);
-
-   Route::get('/all-vichles',[FundPermitController::class,'allVichles']);
-
-});
