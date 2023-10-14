@@ -17,7 +17,8 @@ class FundPermitProductResource extends JsonResource
         return [
 
             'id'          => $this->id,
-            'title'       => $this->title_ar,
+            'title'       => $this->description_ar,
+            'category_id' => $this->category_id,
             'code'        => $this->ean_number,
             'quantity'    => $this->pivot->quantity ?? null,
             'price'       => $this->pivot->price ?? null,

@@ -27,7 +27,7 @@ class FundPermitController extends Controller
     }
 
     public function fundPermitTasks(){
-        $fundPermits    = FundPermit::with('products:id,title_ar,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
+        $fundPermits    = FundPermit::with('products:id,description_ar,category_id,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
         ->orderBy('id', 'DESC')->select('id',
                             'packed_user_id',
                             'delivery_id',
@@ -64,6 +64,7 @@ class FundPermitController extends Controller
                     FundPermitProduct::findOrFail($product['fund_permit_product_id'])->update([
                         'revision_quantity' => $product['revision_quantity'] ?? null,
                         'comment'           => $product['comment'] ?? null,
+                        'revision_comment'  => $product['revision_comment'] ?? null,
                     ]);
                 }
             }
@@ -74,13 +75,6 @@ class FundPermitController extends Controller
         return returnSuccess(__('Task Approved succcess'));
 
     }
-
-
-    public function allVichles(){
-        $vichles = Vichle::orderBy('id', 'DESC')->paginate(request('limit') ?? 15);
-        return returnPaginatedResourceData(VichleResource::collection($vichles));
-    }
-
 
     public function PackingUserFundTask(FinishedTaskRequest $request , $id){
 

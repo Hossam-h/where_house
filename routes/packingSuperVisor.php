@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\FundPermitController;
+use App\Http\Controllers\VichleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,7 @@ Route::group(['prefix' => 'super_visors','middleware' => ['auth:super_visors']],
    Route::get('/packed-fund-permits',[FundPermitController::class,'packedFundPermits']);
    Route::PUT('/approved-fund-permits/{id}',[FundPermitController::class,'approvedFundPermits']);
 
-   Route::get('/all-vichles',[FundPermitController::class,'allVichles']);
+   //all vichles
+   Route::get('/all-vichles',[VichleController::class,'index']);
 
 });
