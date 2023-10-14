@@ -132,9 +132,10 @@ class FundPermitController extends Controller
     public function reviewingAssignTask($id){
         $fundPermit = FundPermit::findOrFail($id);
         $fundPermit->update([
-            'revesion_start_time'  => date('Y-m-d H-i-s'),
+            'start_time_revision'  => date('Y-m-d H-i-s'),
             'status'               => 'in_reviewing',
         ]);
+        return returnSuccess(__('Task In Reviewing'));
     }
 
     /**
