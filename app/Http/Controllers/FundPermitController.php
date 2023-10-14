@@ -9,12 +9,14 @@ use App\Http\Requests\FinishedTaskRequest;
 use App\Http\Requests\ApprovedFundPermits;
 use App\Http\Resources\FundPermitResource;
 use App\Http\Resources\VichleResource;
+use App\Http\Traits\SuperVisorId;
 use Auth;
 use DB;
 
 
 class FundPermitController extends Controller
 {
+    use SuperVisorId;
     /**
      * Display a listing of the resource.
      *
@@ -47,7 +49,6 @@ class FundPermitController extends Controller
 
     public function approvedFundPermits(ApprovedFundPermits $request,$id){
        $fundPermit =   FundPermit::findOrFail($id);
-       
        DB::beginTransaction();
 
        $fundPermit->update([
@@ -109,10 +110,6 @@ class FundPermitController extends Controller
 
         $fundPermit = FundPermit::findOrFail($id);
 
-        if($this->checkPackinTaskAvailable($request->packed_user_id)){
-            return returnError('this packing User already have a task');
-        }
-
         if ($fundPermit->packed_start_time !== NULL){
             return returnError('this task is already assigned');
            }
@@ -132,7 +129,13 @@ class FundPermitController extends Controller
         return returnSuccess(__('Task assigned succcess'));
      }
 
-
+    public function reviewingAssignTask($id){
+        $fundPermit = FundPermit::findOrFail($id);
+        $fundPermit->update([
+            'revesion_start_time'  => date('Y-m-d H-i-s'),
+            'status'               => 'in_reviewing',
+        ]);
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -149,32 +152,4 @@ class FundPermitController extends Controller
         return  ['packingUsers'=> $packingUser, 'products'=>$products, 'units'=>$units];    
     }
 
-    public function checkPackinTaskAvailable($id){
-         
-        $packedUserId = $id ?? Auth::guard('packings')->user()->id;
-        $fundPermit = FundPermit::where([['packed_user_id',$packedUserId],['packed_end_time',null]])->first();
-        $refund     = Refund::where([['packed_user_id',$packedUserId],['packed_end_time',null]])->first();
-
-       if($fundPermit != null || $refund != null){        
-         return true;
-       }
-       return false;
-
-    }
-
-    public function getSuperVisorId($id = null)
-    {
-        $packedSupervisorId = null;
-        if (Auth::guard('super_visors')->check())
-        {
-            $packedSupervisorId = Auth::guard('super_visors')->user()->id;
-        }else{
-            if(PackingUser::findOrFail($id)){
-                $packingSupervisor  = PackingUser::findOrFail($id)->packingSupervisor;
-                $packedSupervisorId = $packingSupervisor->id;
-            }
-        }
-
-        return $packedSupervisorId;
-    }
 }

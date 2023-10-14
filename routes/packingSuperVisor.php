@@ -25,15 +25,16 @@ use App\Http\Controllers\VichleController;
 
 Route::group(['prefix' => 'super_visors','middleware' => ['auth:super_visors']],function ()
 {
+   /////////////////////////////////////// Refunds //////////////////////////////////////////////
    Route::resource('/refunds',RefundController::class)->except('edit','update','destroy','show');
    Route::get('/task-refund-create/{id}',[RefundController::class,'edit']);
    Route::PUT('/assign-task-refund/{id}',[RefundController::class,'assignTask']);
 
+   /////////////////////////////////////// FundPermit //////////////////////////////////////////////
    Route::get('/fund-permits',[FundPermitController::class,'index']);
    Route::get('/fund-permits-tasks',[FundPermitController::class,'fundPermitTasks']);
    Route::get('/task-fund-permit-create/{id}',[FundPermitController::class,'edit']);
-   Route::PUT('/assign-task-fund-permit/{id}',[FundPermitController::class,'assignTask']);
-
+   Route::PUT('/reviewing-fund-permit-task/{id}',[FundPermitController::class,'reviewingAssignTask']);
 
    //supervisor-reviewer-to-approved
    Route::get('/packed-fund-permits',[FundPermitController::class,'packedFundPermits']);
