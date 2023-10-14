@@ -66,7 +66,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token'      => $token,
             'token_type'        => 'bearer',
-            'expires_in'        => auth()->factory()->getTTL() * 60,
+            'expires_in'        => auth()->factory()->getTTL() *60*24,
             'user_id'           => Auth::guard('packings')->user()->id ?? Auth::guard('super_visors')->user()->id,
             'name'              => Auth::guard('packings')->user()->name_ar ?? Auth::guard('super_visors')->user()->name_ar,
             'code'              => Auth::guard('packings')->user()->code ?? Auth::guard('super_visors')->user()->code,
