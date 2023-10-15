@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Vichle;
+use App\Http\Resources\VichleResource;
 
 class VichleController extends Controller
 {

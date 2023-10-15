@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,Vichle,FundPermitProduct};
+use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,FundPermitProduct};
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignFundTaskRequest;
 use App\Http\Requests\FinishedTaskRequest;
 use App\Http\Requests\ApprovedFundPermits;
 use App\Http\Resources\FundPermitResource;
-use App\Http\Resources\VichleResource;
 use App\Http\Traits\SuperVisorId;
 use Auth;
 use DB;
@@ -54,8 +53,7 @@ class FundPermitController extends Controller
        $fundPermit->update([
            'status'               => 'approved',
            'vichle_id'            => $request->vichle_id,
-           'revision_start_time'  => $request->revision_start_time ?? null,
-           'revision_end_time'    => $request->revision_end_time ?? null, 
+           'end_time_revision'    => date('Y-m-d H:i:s') ?? null, 
            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
 

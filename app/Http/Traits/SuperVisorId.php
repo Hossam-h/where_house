@@ -5,7 +5,7 @@ use Auth;
 use App\Models\PackingUser;
 
 trait SuperVisorId{
-  public function  getSuperVisorId(){
+  public function  getSuperVisorId($id = null){
 
     $packedSupervisorId = null;
     if (Auth::guard('super_visors')->check())

@@ -24,7 +24,7 @@ class AssignFundTaskRequest extends FormRequest
     public function rules()
     {
         return [
-            'packed_start_time'    => ['required','date_format:Y-m-d H:i:s','after:yesterday',new CheckPackinTaskAvailable()],
+            'packed_start_time'    => ['required','date_format:Y-m-d H:i:s','after:yesterday', new CheckPackinTaskAvailable()],
             'packed_supervisor_id' => 'exists:packing_supervisors,id',
             'packed_user_id'       => 'exists:packing_users,id',
             'delivery_id'          => 'integer',
