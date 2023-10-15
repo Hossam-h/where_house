@@ -28,15 +28,26 @@ class FundPermitController extends Controller
     }
 
     public function fundPermitTasks(){
-        $fundPermits    = FundPermit::with('products:id,description_ar,category_id,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
-        ->orderBy('id', 'DESC')->select('id',
-                            'packed_user_id',
-                            'delivery_id',
-                            'cost',
-                            'packed_start_time',
-                            'packed_end_time',
-                            'created_at',
-                            'status')->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+      //  with('product')->select('*', DB::raw('SUM(quantity) as quantity '),)->whereIn('invoice_id', $invoices->pluck('id')->toArray())->groupBy('product_id', 'unit_id')->get();
+      
+    //   $fundPermits = FundPermit::with(['fundPermitProducts' => function($q) {
+    //     $q->selectRaw('fund_permit_id, product_id, SUM(quantity) as quantity, SUM(cost) as cost')
+    //         ->groupBy(['fund_permit_id', 'product_id']);
+    // }])->get();
+
+      $fundPermits  = FundPermit::with(['fundPermitProducts'=>function($q){
+        $q->selectRaw('fund_permit_id, product_id, SUM(quantity) as quantity, SUM(packed_qty) as packed_qty, SUM(missing_qty) as missing_qty, SUM(cost) as cost')
+            ->groupBy(['fund_permit_id', 'product_id']);
+     }],'products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
+     ->orderBy('id', 'DESC')->select('id',
+                         'packed_user_id',
+                         'delivery_id',
+                         'cost',
+                         'packed_start_time',
+                         'packed_end_time',
+                         'created_at',
+                         'status')->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
     }
 

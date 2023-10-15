@@ -16,18 +16,18 @@ class FundPermitProductResource extends JsonResource
     {
         return [
 
-            'id'          => $this->id,
-            'title'       => $this->description_ar,
-            'category_id' => $this->category_id,
-            'code'        => $this->ean_number,
-            'quantity'    => $this->pivot->quantity ?? null,
-            'price'       => $this->pivot->price ?? null,
-            'cost'        => $this->pivot->cost ?? null,
-            'fund_permit_product_id' => $this->pivot->id ?? null,
-            'packed_qty'        => $this->pivot->packed_qty ?? null,
-            'missing_qty'       => $this->pivot->missing_qty ?? null,
-            'images'            => $this->images ? 'https://api-dashboard.morzaq.com/images/products/'.$this->images->pluck('url')[0] : null,
-            'unit'              => $this->units  ? $this->units->pluck('name_ar')[0] : null
+            'id'          => $this->product->id,
+            'title'       => $this->product->description_ar,
+            'category_id' => $this->product->category_id,
+            'code'        => $this->product->ean_number,
+            'quantity'    => $this->quantity ?? null,
+            'price'       => $this->price ?? null,
+            'cost'        => $this->cost ?? null,
+            //'fund_permit_product_id' => $this->id ?? null,
+            'packed_qty'        => $this->packed_qty ?? null,
+            'missing_qty'       => $this->missing_qty ?? null,
+            'images'            => $this->product->images ? 'https://api-dashboard.morzaq.com/images/products/'.$this->product->images->pluck('url')[0] : null,
+            'unit'              => $this->product->units  ? $this->product->units->pluck('name_ar')[0] : null
             
         ];
     }
