@@ -23,7 +23,7 @@ class FundPermitProductResource extends JsonResource
             'quantity'    => $this->quantity ?? null,
             'price'       => $this->price ?? null,
             'cost'        => $this->cost ?? null,
-            //'fund_permit_product_id' => $this->id ?? null,
+            'fund_permit_product_id' => $this->id ?? null,
             'packed_qty'        => $this->packed_qty ?? null,
             'missing_qty'       => $this->missing_qty ?? null,
             'images'            => $this->product->images ? 'https://api-dashboard.morzaq.com/images/products/'.$this->product->images->pluck('url')[0] : null,

@@ -9,9 +9,9 @@ use App\Http\Requests\FinishedTaskRequest;
 use App\Http\Requests\ApprovedFundPermits;
 use App\Http\Resources\FundPermitResource;
 use App\Http\Traits\SuperVisorId;
+use App\Http\Requests\ReviewingAssignTaskRequest;
 use Auth;
 use DB;
-
 
 class FundPermitController extends Controller
 {
@@ -28,16 +28,10 @@ class FundPermitController extends Controller
     }
 
     public function fundPermitTasks(){
-      //  with('product')->select('*', DB::raw('SUM(quantity) as quantity '),)->whereIn('invoice_id', $invoices->pluck('id')->toArray())->groupBy('product_id', 'unit_id')->get();
-      
-    //   $fundPermits = FundPermit::with(['fundPermitProducts' => function($q) {
-    //     $q->selectRaw('fund_permit_id, product_id, SUM(quantity) as quantity, SUM(cost) as cost')
-    //         ->groupBy(['fund_permit_id', 'product_id']);
-    // }])->get();
-
-      $fundPermits  = FundPermit::with(['fundPermitProducts'=>function($q){
-        $q->selectRaw('fund_permit_id, product_id, SUM(quantity) as quantity, SUM(packed_qty) as packed_qty, SUM(missing_qty) as missing_qty, SUM(cost) as cost')
-            ->groupBy(['fund_permit_id', 'product_id']);
+     
+        $fundPermits  = FundPermit::with(['fundPermitProducts'=>function($q){
+        $q->selectRaw('id','fund_permit_id, product_id, SUM(quantity) as quantity, SUM(packed_qty) as packed_qty, SUM(missing_qty) as missing_qty, SUM(cost) as cost')
+            ->groupBy(['id']);
      }],'products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
      ->orderBy('id', 'DESC')->select('id',
                          'packed_user_id',
@@ -138,11 +132,12 @@ class FundPermitController extends Controller
         return returnSuccess(__('Task assigned succcess'));
      }
 
-    public function reviewingAssignTask($id){
+    public function reviewingAssignTask(ReviewingAssignTaskRequest $request,$id){
         $fundPermit = FundPermit::findOrFail($id);
         $fundPermit->update([
             'start_time_revision'  => date('Y-m-d H-i-s'),
             'status'               => 'in_reviewing',
+            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
         return returnSuccess(__('Task In Reviewing'));
     }
