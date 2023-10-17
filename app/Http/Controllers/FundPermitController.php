@@ -30,7 +30,7 @@ class FundPermitController extends Controller
     public function fundPermitTasks(){
      
         $fundPermits  = FundPermit::with(['fundPermitProducts'=>function($q){
-        $q->selectRaw('id','fund_permit_id, product_id, SUM(quantity) as quantity, SUM(packed_qty) as packed_qty, SUM(missing_qty) as missing_qty, SUM(cost) as cost')
+        $q->selectRaw('id,fund_permit_id, product_id, SUM(quantity) as quantity, SUM(packed_qty) as packed_qty, SUM(missing_qty) as missing_qty, SUM(cost) as cost')
             ->groupBy(['id']);
      }],'products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
      ->orderBy('id', 'DESC')->select('id',
