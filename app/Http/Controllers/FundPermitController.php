@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,FundPermitProduct};
+use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,Vichle,FundPermitProduct};
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignFundTaskRequest;
 use App\Http\Requests\FinishedTaskRequest;
 use App\Http\Requests\ApprovedFundPermits;
 use App\Http\Resources\FundPermitResource;
+use App\Http\Resources\VichleResource;
 use App\Http\Traits\SuperVisorId;
-use App\Http\Requests\ReviewingAssignTaskRequest;
 use Auth;
 use DB;
-use Exception;
+
+
 class FundPermitController extends Controller
 {
     use SuperVisorId;
@@ -28,20 +29,15 @@ class FundPermitController extends Controller
     }
 
     public function fundPermitTasks(){
-     
-        $fundPermits  = FundPermit::with(['fundPermitProducts'=>function($q){
-        $q->selectRaw('id,fund_permit_id, product_id, SUM(quantity) as quantity, SUM(packed_qty) as packed_qty, SUM(missing_qty) as missing_qty, SUM(cost) as cost')
-            ->groupBy(['id']);
-     }],'products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
-     ->orderBy('id', 'DESC')->select('id',
-                         'packed_user_id',
-                         'delivery_id',
-                         'cost',
-                         'packed_start_time',
-                         'packed_end_time',
-                         'created_at',
-                         'status')->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
-
+        $fundPermits    = FundPermit::with('products:id,description_ar,category_id,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
+        ->orderBy('id', 'DESC')->select('id',
+                            'packed_user_id',
+                            'delivery_id',
+                            'cost',
+                            'packed_start_time',
+                            'packed_end_time',
+                            'created_at',
+                            'status')->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
     }
 
@@ -58,7 +54,8 @@ class FundPermitController extends Controller
        $fundPermit->update([
            'status'               => 'approved',
            'vichle_id'            => $request->vichle_id,
-           'end_time_revision'    => date('Y-m-d H:i:s') ?? null, 
+           'revision_start_time'  => $request->revision_start_time ?? null,
+           'revision_end_time'    => $request->revision_end_time ?? null, 
            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
 
@@ -132,14 +129,12 @@ class FundPermitController extends Controller
         return returnSuccess(__('Task assigned succcess'));
      }
 
-    public function reviewingAssignTask(ReviewingAssignTaskRequest $request,$id){
+    public function reviewingAssignTask($id){
         $fundPermit = FundPermit::findOrFail($id);
         $fundPermit->update([
-            'start_time_revision'  => date('Y-m-d H-i-s'),
+            'revesion_start_time'  => date('Y-m-d H-i-s'),
             'status'               => 'in_reviewing',
-            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
-        return returnSuccess(__('Task In Reviewing'));
     }
 
     /**
