@@ -12,7 +12,7 @@ use App\Http\Traits\SuperVisorId;
 use App\Http\Requests\ReviewingAssignTaskRequest;
 use Auth;
 use DB;
-
+use Exception;
 class FundPermitController extends Controller
 {
     use SuperVisorId;
