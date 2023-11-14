@@ -2,16 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,Vichle,FundPermitProduct};
-use Illuminate\Http\Request;
-use App\Http\Requests\AssignFundTaskRequest;
-use App\Http\Requests\FinishedTaskRequest;
-use App\Http\Requests\ApprovedFundPermits;
 use App\Http\Resources\FundPermitResource;
-use App\Http\Resources\VichleResource;
+use Carbon\Carbon;
+use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,Vichle,FundPermitProduct};
+use App\Http\Requests\{AssignFundTaskRequest, FinishedTaskRequest, ApprovedFundPermits};
 use App\Http\Traits\SuperVisorId;
-use Auth;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 
 class FundPermitController extends Controller
@@ -30,15 +26,56 @@ class FundPermitController extends Controller
 
     public function fundPermitTasks(){
         $fundPermits    = FundPermit::with('products:id,description_ar,category_id,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
-        ->orderBy('id', 'DESC')->select('id',
-                            'packed_user_id',
-                            'delivery_id',
-                            'cost',
-                            'packed_start_time',
-                            'packed_end_time',
-                            'created_at',
-                            'status')->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+        ->orderBy('id', 'DESC')
+            ->select('id',
+                     'packed_user_id',
+                     'delivery_id',
+                     'cost',
+                     'packed_start_time',
+                     'packed_end_time',
+                     'created_at',
+                     'status')
+            ->orderBy('id', 'DESC')
+            ->dailyFilter()
+            ->paginate(request('limit'));
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
+    }
+
+    public function reviewDelivery()
+    {
+        $currentDate = Carbon::now()->toDateString();
+
+        $reserves = DB::table('reserves')->whereDate('created_at', now())->get();
+
+        $deliveries = Delivery::with('order_invoices:id,delivery_id,status,created_at', 'order_invoices.order_product', 'refunds', 'refunds.products')
+            ->whereHas('order_invoices', function ($query) use ($currentDate) {
+                $query->whereDate('created_at', $currentDate);
+            });
+
+        $products = $deliveries->get();
+
+        $productsDelivered = $products->filter(function ($product) use ($reserves) {
+            return $product->order_invoices->isNotEmpty() &&
+                $product->order_invoices->each(function ($invoice) use ($reserves) {
+                    return $invoice->order_product->whereIn('product_id', $reserves->pluck('product_id'))->isNotEmpty();
+                });
+        });
+
+        $productsNotDelivered = $products->filter(function ($product) use ($reserves) {
+            return $product->order_invoices->isNotEmpty() &&
+                $product->order_invoices->each(function ($invoice) use ($reserves) {
+                    return $invoice->order_product->whereIn('product_id', $reserves->pluck('product_id'))->isEmpty();
+                });
+        });
+
+
+        $resultArray = [
+            'productsDelivered' => $productsDelivered->toArray(),
+            'productsNotDelivered' => $productsNotDelivered->toArray(),
+        ];
+
+        return returnPaginatedResourceData($resultArray);
+
     }
 
 
@@ -55,7 +92,7 @@ class FundPermitController extends Controller
            'status'               => 'approved',
            'vichle_id'            => $request->vichle_id,
            'revision_start_time'  => $request->revision_start_time ?? null,
-           'revision_end_time'    => $request->revision_end_time ?? null, 
+           'revision_end_time'    => $request->revision_end_time ?? null,
            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
 
@@ -72,7 +109,7 @@ class FundPermitController extends Controller
         }
         DB::commit();
 
-        
+
         return returnSuccess(__('Task Approved succcess'));
 
     }
@@ -88,7 +125,7 @@ class FundPermitController extends Controller
          'notes'              => $request->notes ?? null ,
          'status'             => $request->status ?? 'packed' ,
         ]);
-        
+
         if(count($request->products) > 0){
             foreach($request->products as $product){
                 if($product['missing_qty']|| $product['packed_qty']){
@@ -125,7 +162,7 @@ class FundPermitController extends Controller
                 ]);
 
         DB::commit();
- 
+
         return returnSuccess(__('Task assigned succcess'));
      }
 
@@ -149,7 +186,7 @@ class FundPermitController extends Controller
         $products    = Product::select('id','title_ar')->get();
         $units       = Unit::select('id','name_ar')->get();
 
-        return  ['packingUsers'=> $packingUser, 'products'=>$products, 'units'=>$units];    
+        return  ['packingUsers'=> $packingUser, 'products'=>$products, 'units'=>$units];
     }
 
 }
