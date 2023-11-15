@@ -27,7 +27,9 @@ class RefundController extends Controller
     public function index()
     {
         $lastMonth  =  Carbon::createFromFormat('m/d/Y',Carbon::now()->format('m/d/Y'))->subMonth()->format('Y-m-d');
-        $refunds    = Refund::whereDate('created_at','>=',$lastMonth)->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+        $refunds    = Delivery::with(['refunds'=>function($q){
+            $q->whereDate('created_at','>=',$lastMonth)->orderBy('id', 'DESC')->dailyFilter();
+        }]);
         return returnPaginatedResourceData(RefundResource::collection($refunds));
     }
 
