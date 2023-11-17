@@ -29,7 +29,8 @@ class FundPermitController extends Controller
     }
 
     public function fundPermitTasks(){
-        $fundPermits    = FundPermit::with('products:id,description_ar,category_id,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
+    
+        $fundPermits    = FundPermit::query()->with('products:id,description_ar,category_id,ean_number','products.units:id,name_ar,name_en','delivery:id,name_ar','packingUser:id,name_ar')
         ->orderBy('id', 'DESC')->select('id',
                             'packed_user_id',
                             'delivery_id',
@@ -37,7 +38,13 @@ class FundPermitController extends Controller
                             'packed_start_time',
                             'packed_end_time',
                             'created_at',
-                            'status')->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+                            'status');
+                            if(isset(Auth::guard('packings')->user()->id)){
+                                $fundPermits->where('status','pending')->orWhere('status','in_picking');
+                            }else{
+                                $fundPermits->where('status','packed')->orWhere('status','in_reviewing');
+                            }
+                            $fundPermits =  $fundPermits->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
     }
 
@@ -54,8 +61,7 @@ class FundPermitController extends Controller
        $fundPermit->update([
            'status'               => 'approved',
            'vichle_id'            => $request->vichle_id,
-           'revision_start_time'  => $request->revision_start_time ?? null,
-           'revision_end_time'    => $request->revision_end_time ?? null, 
+           'end_time_revision'    => date('Y-m-d H-i-s') ?? null, 
            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
 
@@ -117,8 +123,8 @@ class FundPermitController extends Controller
         $packedUserId = $request->packed_user_id ?? Auth::guard('packings')->user()->id;
         DB::beginTransaction();
             $fundPermit->update([
-                    'packed_start_time'    => $request->packed_start_time,
-                    'packed_supervisor_id' => $this->getSuperVisorId($packedUserId),
+                    'packed_start_time'    => date('Y-m-d H-i-s'),
+                    //'packed_supervisor_id' => $this->getSuperVisorId($packedUserId),
                     'packed_user_id'       => $packedUserId,
                     'is_assigned'          => 1 ,
                     'status'               => 'in_picking' ,
@@ -132,9 +138,11 @@ class FundPermitController extends Controller
     public function reviewingAssignTask($id){
         $fundPermit = FundPermit::findOrFail($id);
         $fundPermit->update([
-            'revesion_start_time'  => date('Y-m-d H-i-s'),
+            'start_time_revision'  => date('Y-m-d H-i-s'),
             'status'               => 'in_reviewing',
         ]);
+
+        return returnSuccess(__('Task in  Ireviewing'));
     }
 
     /**

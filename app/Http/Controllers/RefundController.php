@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Refund,PackingUser,FundPermit,RefundProduct};
+use App\Models\{Refund,PackingUser,FundPermit,RefundProduct,Delivery};
 use Illuminate\Http\Request;
 use App\Http\Requests\{AssignTaskRequest,PackinUserTaskRequest};
 use Carbon\Carbon;
 use Auth;
-use App\Http\Resources\RefundResource;
+use App\Http\Resources\{RefundResource,DeliveryResource};
 use DB;
 class RefundController extends Controller
 {
@@ -27,10 +27,10 @@ class RefundController extends Controller
     public function index()
     {
         $lastMonth  =  Carbon::createFromFormat('m/d/Y',Carbon::now()->format('m/d/Y'))->subMonth()->format('Y-m-d');
-        $refunds    = Delivery::with(['refunds'=>function($q){
+        $refunds    = Delivery::with(['refunds'=>function($q) use($lastMonth){
             $q->whereDate('created_at','>=',$lastMonth)->orderBy('id', 'DESC')->dailyFilter();
-        }]);
-        return returnPaginatedResourceData(RefundResource::collection($refunds));
+        }])->get();
+        return returnPaginatedResourceData(DeliveryResource::collection($refunds));
     }
 
     /**

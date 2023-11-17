@@ -9,7 +9,7 @@ class Delivery extends Model
 {
     use HasFactory;
     public function refunds(){
-        return $this->hasMany(Refund::class,'delivery_id');
+        return $this->hasMany(Refund::class,'delivery_id')->where('status','approved');
     }
 
     public function refundsPartial(){
