@@ -21,7 +21,7 @@ class RefundResource extends JsonResource
             'packed_end_time'      => $this->packed_end_time ?? null,
             'created_at'           => date('d M Y', strtotime($this->created_at)),
 
-            'products'       => RefundProductResource::collection($this->products),
+            'products'       => RefundProductResource::collection($this->products) ?? null,
             'delivery'       => (object) ["id" => $this->delivery->id ?? null , "name" => $this->delivery->name_ar ?? null],
             'packed_user'    => (object) ["id" => $this->packingUser->id ??null , "name" => $this->packingUser->name_ar??null]
         ];

@@ -18,8 +18,8 @@ class DeliveryResource extends JsonResource
             'id'                   => $this->id,
             'cost'                 => $this->name_ar,
             'packed_start_time'    => $this->code ?? null,
-            'partial_refund'       => RefundResource::collection($this->refundsPartial),
-            'approve_refund'       => RefundResource::collection($this->refunds)
+             'partial_refund'       => RefundResource::collection($this->refundsPartial) ?? null,
+             'approve_refund'       => RefundResource::collection($this->refunds) ?? null
         ];
     }
 }
