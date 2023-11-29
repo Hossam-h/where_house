@@ -15,11 +15,12 @@ class DeliveryResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id'                   => $this->id,
-            'name'                 => $this->name_ar,
-            'code'                 => $this->code ?? null,
-             'partial_refund'       => RefundResource::collection($this->refundsPartial) ?? null,
-             'approve_refund'       => RefundResource::collection($this->refunds) ?? null
+            'id'                  => $this->id,
+            'name'                => $this->name_ar,
+            'code'                => $this->code ?? null,
+             'partial_refund'     => RefundResource::collection($this->refundsPartial) ?? null,
+             'approve_refund'     => RefundResource::collection($this->refunds) ?? null,
+             'old_refund'         => RefundResource::collection($this->oldRefund) ?? null
         ];
     }
 }

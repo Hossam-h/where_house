@@ -15,4 +15,8 @@ class Delivery extends Model
     public function refundsPartial(){
         return $this->hasMany(Refund::class,'delivery_id')->where('status','partial');
     }
+    
+    public function oldRefund(){
+        return $this->hasMany(Refund::class,'delivery_id')->where('status','old_refunds');
+    }
 }

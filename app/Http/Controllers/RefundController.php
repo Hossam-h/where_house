@@ -30,9 +30,13 @@ class RefundController extends Controller
         $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
         })->orWhereHas('refundsPartial',function($q){
             $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        })->orWhereHas('oldRefund',function($q){
+            $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
         })->with(['refunds'=>function($q){
             $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
         }])->with(['refundsPartial'=>function($q){
+            $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        }])->with(['oldRefund'=>function($q){
             $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
         }])->get();
       
