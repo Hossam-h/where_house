@@ -16,8 +16,8 @@ class DeliveryResource extends JsonResource
     {
         return [
             'id'                   => $this->id,
-            'cost'                 => $this->name_ar,
-            'packed_start_time'    => $this->code ?? null,
+            'name'                 => $this->name_ar,
+            'code'                 => $this->code ?? null,
              'partial_refund'       => RefundResource::collection($this->refundsPartial) ?? null,
              'approve_refund'       => RefundResource::collection($this->refunds) ?? null
         ];
