@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Refund,PackingUser,FundPermit,RefundProduct};
+use App\Models\{Refund,PackingUser,FundPermit,RefundProduct,Delivery};
 use Illuminate\Http\Request;
 use App\Http\Requests\{AssignTaskRequest,PackinUserTaskRequest};
 use Carbon\Carbon;
 use Auth;
-use App\Http\Resources\RefundResource;
+use App\Http\Resources\{RefundResource,DeliveryResource};
 use DB;
 class RefundController extends Controller
 {
@@ -26,9 +26,21 @@ class RefundController extends Controller
 
     public function index()
     {
-        $lastMonth  =  Carbon::createFromFormat('m/d/Y',Carbon::now()->format('m/d/Y'))->subMonth()->format('Y-m-d');
-        $refunds    = Refund::whereDate('created_at','>=',$lastMonth)->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
-        return returnPaginatedResourceData(RefundResource::collection($refunds));
+        $Deliveryrefunds    = Delivery::whereHas('refunds',function($q){
+        $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        })->orWhereHas('refundsPartial',function($q){
+            $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        })->orWhereHas('oldRefund',function($q){
+            $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        })->with(['refunds'=>function($q){
+            $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        }])->with(['refundsPartial'=>function($q){
+            $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        }])->with(['oldRefund'=>function($q){
+            $q->whereDate('created_at', Carbon::today()->format('Y-m-d'));
+        }])->get();
+      
+        return returnPaginatedResourceData(DeliveryResource::collection($Deliveryrefunds));
     }
 
     /**
@@ -96,10 +108,12 @@ class RefundController extends Controller
         ]);
 
          foreach ($request->products as $product) {
-            RefundProduct::findOrFail($product['refund_product_id'])->update([
+            $refundProduct = RefundProduct::findOrFail($product['refund_product_id']);
+            $refundProduct->update([
                 'packed_qty'        => $product['packed_qty'] ?? null,
                 'missing_qty'       => $product['missing_qty'] ?? null,
             ]);
+            $refundProduct->product->increment('for_sell_quantity', $product['packed_qty']);
          }
 
          DB::commit();

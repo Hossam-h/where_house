@@ -24,8 +24,8 @@ class RefundProductResource extends JsonResource
             'refund_product_id' => $this->pivot->id ?? null,
             'packed_qty'        => $this->pivot->packed_qty ?? null,
             'missing_qty'       => $this->pivot->missing_qty ?? null,
-            'images'      => $this->images ? $this->images->pluck('url')[0] : null,
-            'unit'        => $this->units  ? $this->units->pluck('name_'.app()->getLocale())[0] : null
+             'images'      => isset($this->images) ? 'https://api-dashboard.morzaq.com/images/products/'.$this->images->pluck('url')[0] : null,
+             'unit'        => isset($this->units) &&  count($this->units) > 0? $this->units->pluck('name_'.app()->getLocale())[0] : null
         ];
     }
 }

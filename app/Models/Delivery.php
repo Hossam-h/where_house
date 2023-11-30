@@ -6,17 +6,17 @@ use Illuminate\Database\Eloquent\{Model, Relations\HasMany};
 
 class Delivery extends Model
 {
-    protected $guarded = [];
 
-    /**
-     * @return HasMany
-     */
-    public function order_invoices() : HasMany
-    {
-        return $this->hasMany(OrderInvoice::class, 'delivery_id', 'id');
+    use HasFactory;
+    public function refunds(){
+        return $this->hasMany(Refund::class,'delivery_id')->where('status','cancelled');
     }
-    public function refunds() : HasMany
-    {
-        return $this->hasMany(Refund::class, 'delivery_id', 'id');
+
+    public function refundsPartial(){
+        return $this->hasMany(Refund::class,'delivery_id')->where('status','partial');
+    }
+    
+    public function oldRefund(){
+
     }
 }
