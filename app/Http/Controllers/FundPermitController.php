@@ -2,16 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,Vichle,FundPermitProduct};
-use Illuminate\Http\Request;
-use App\Http\Requests\AssignFundTaskRequest;
-use App\Http\Requests\FinishedTaskRequest;
-use App\Http\Requests\ApprovedFundPermits;
 use App\Http\Resources\FundPermitResource;
-use App\Http\Resources\VichleResource;
+use Carbon\Carbon;
+use App\Models\{FundPermit,Delivery,Product,PackingUser,ProductUnit,Unit,Refund,Vichle,FundPermitProduct};
+use App\Http\Requests\{AssignFundTaskRequest, FinishedTaskRequest, ApprovedFundPermits};
 use App\Http\Traits\SuperVisorId;
-use Auth;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 
 class FundPermitController extends Controller
@@ -44,8 +40,45 @@ class FundPermitController extends Controller
                             }else{
                                 $fundPermits->where('status','packed')->orWhere('status','in_reviewing');
                             }
-                            $fundPermits =  $fundPermits->orderBy('id', 'DESC')->dailyFilter()->paginate(request('limit') ?? 15);
+
         return returnPaginatedResourceData(FundPermitResource::collection($fundPermits));
+    }
+
+    public function reviewDelivery()
+    {
+        $currentDate = Carbon::now()->toDateString();
+
+        $reserves = DB::table('reserves')->whereDate('created_at', now())->get();
+
+        $deliveries = Delivery::with('order_invoices:id,delivery_id,status,created_at', 'order_invoices.order_product', 'refunds', 'refunds.products')
+            ->whereHas('order_invoices', function ($query) use ($currentDate) {
+                $query->whereDate('created_at', $currentDate);
+            });
+
+        $products = $deliveries->get();
+
+        $productsDelivered = $products->filter(function ($product) use ($reserves) {
+            return $product->order_invoices->isNotEmpty() &&
+                $product->order_invoices->each(function ($invoice) use ($reserves) {
+                    return $invoice->order_product->whereIn('product_id', $reserves->pluck('product_id'))->isNotEmpty();
+                });
+        });
+
+        $productsNotDelivered = $products->filter(function ($product) use ($reserves) {
+            return $product->order_invoices->isNotEmpty() &&
+                $product->order_invoices->each(function ($invoice) use ($reserves) {
+                    return $invoice->order_product->whereIn('product_id', $reserves->pluck('product_id'))->isEmpty();
+                });
+        });
+
+
+        $resultArray = [
+            'productsDelivered' => $productsDelivered->toArray(),
+            'productsNotDelivered' => $productsNotDelivered->toArray(),
+        ];
+
+        return returnPaginatedResourceData($resultArray);
+
     }
 
 
@@ -60,7 +93,7 @@ class FundPermitController extends Controller
 
        $fundPermit->update([
            'status'               => 'approved',
-           'vichle_id'            => $request->vichle_id,
+
            'end_time_revision'    => date('Y-m-d H-i-s') ?? null, 
            'packed_supervisor_id' => $this->getSuperVisorId(),
         ]);
@@ -78,7 +111,7 @@ class FundPermitController extends Controller
         }
         DB::commit();
 
-        
+
         return returnSuccess(__('Task Approved succcess'));
 
     }
@@ -94,7 +127,7 @@ class FundPermitController extends Controller
          'notes'              => $request->notes ?? null ,
          'status'             => $request->status ?? 'packed' ,
         ]);
-        
+
         if(count($request->products) > 0){
             foreach($request->products as $product){
                 if($product['missing_qty']|| $product['packed_qty']){
@@ -131,7 +164,7 @@ class FundPermitController extends Controller
                 ]);
 
         DB::commit();
- 
+
         return returnSuccess(__('Task assigned succcess'));
      }
 
@@ -157,7 +190,7 @@ class FundPermitController extends Controller
         $products    = Product::select('id','title_ar')->get();
         $units       = Unit::select('id','name_ar')->get();
 
-        return  ['packingUsers'=> $packingUser, 'products'=>$products, 'units'=>$units];    
+        return  ['packingUsers'=> $packingUser, 'products'=>$products, 'units'=>$units];
     }
 
 }

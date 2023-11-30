@@ -24,6 +24,7 @@ Route::group(['prefix' => 'Packing-user', 'middleware'=> ['auth:packings'] ],fun
    Route::PUT('/refund-task/{id}',[RefundController::class,'PackingUserTask']);
    Route::PUT('/fund-permit-task/{id}',[FundPermitController::class,'PackingUserFundTask']);
    Route::get('/fund-permits-tasks',[FundPermitController::class,'fundPermitTasks']);
+   Route::get('/review-delivery',[FundPermitController::class,'reviewDelivery']);
    Route::PUT('/assign-task-fund-permit/{id}',[FundPermitController::class,'assignTask']);
 
    ////////////////////////////// refunds //////////////////////////////////////////////////
