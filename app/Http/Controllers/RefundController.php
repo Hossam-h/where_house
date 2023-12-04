@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Refund,PackingUser,FundPermit,RefundProduct,Delivery};
+use App\Models\{Refund,PackingUser,FundPermit,RefundProduct,Delivery,ProductLockedStock};
 use Illuminate\Http\Request;
 use App\Http\Requests\{AssignTaskRequest,PackinUserTaskRequest};
 use Carbon\Carbon;
@@ -109,17 +109,34 @@ class RefundController extends Controller
 
          foreach ($request->products as $product) {
             $refundProduct = RefundProduct::findOrFail($product['refund_product_id']);
-            $refundProduct->update([
-                'packed_qty'        => $product['packed_qty'] ?? null,
-                'missing_qty'       => $product['missing_qty'] ?? null,
-            ]);
-            $refundProduct->product->increment('for_sell_quantity', $product['packed_qty']);
+            if(!$product['is_missing']){
+                $refundProduct->update([
+                    'packed_qty'  => $product['packed_qty'] ?? null,
+                    'missing_qty' => $product['missing_qty'] ?? null,
+                ]);
+                $refundProduct->product->increment('for_sell_quantity', $product['packed_qty']);
+            }else{
+                $locked_stock = ProductLockedStock::whereDate('locked_stock_date',date('Y-m-d'))->first();
+                $refundProduct->update([
+                    'packed_qty'  => $product['packed_qty'] ?? null,
+                    'missing_qty' => $product['missing_qty'] ?? null,
+                ]);
+                if ($locked_stock) {
+                    $locked_stock->increment('locked_stock_qty', $product['missing_qty']);
+                }else{
+                    ProductLockedStock::create([
+                        'locked_stock_date'     => date('Y-m-d'),
+                        'locked_stock_qty' => $product['missing_qty'],
+                        'product_id' => $refundProduct->product_id
+                    ]);
+                }
+            }
          }
 
          DB::commit();
 
         return returnSuccess(__('Task finished succcess'));
-     }
+    }
 
 
    

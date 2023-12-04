@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\{Model, Relations\HasMany};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Delivery extends Model
 {
-
     use HasFactory;
     public function refunds(){
         return $this->hasMany(Refund::class,'delivery_id')->where('status','cancelled');
@@ -17,6 +17,6 @@ class Delivery extends Model
     }
     
     public function oldRefund(){
-
+        return $this->hasMany(Refund::class,'delivery_id')->where('status','old_refunds');
     }
 }
